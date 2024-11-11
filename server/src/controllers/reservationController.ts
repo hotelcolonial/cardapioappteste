@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import { Resend } from "resend";
 
 const prisma = new PrismaClient();
-const resend = new Resend("re_AUvRraGb_PpXFXPT5Quu6GFwfkN9jWGSy");
 
 export const createReservation = async (
   req: Request,
@@ -89,5 +88,50 @@ export const updateReservationStatus = async (
     res
       .status(500)
       .json({ message: `Error updating reservation status: ${error.message}` });
+  }
+};
+
+export const updateWaitTime = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { waitTime, messageActivated } = req.body;
+
+  try {
+    const existingConfig = await prisma.timeConfiguration.findFirst();
+
+    let updatedWaitTime;
+
+    if (existingConfig) {
+      updatedWaitTime = await prisma.timeConfiguration.update({
+        where: {
+          id: existingConfig.id,
+        },
+        data: {
+          waitTime,
+          messageActivated,
+        },
+      });
+    }
+    res.json(updatedWaitTime);
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: `Error updating wait time: ${error.message}` });
+  }
+};
+
+export const getWaitTime = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const existingConfig = await prisma.timeConfiguration.findFirst();
+
+    res.json(existingConfig);
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: `Error getting wait time: ${error.message}` });
   }
 };

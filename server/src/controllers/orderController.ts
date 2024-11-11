@@ -1,7 +1,44 @@
+import cron from "node-cron";
 import { Request, Response } from "express";
 import { OrderStatus, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
+
+cron.schedule("*/10 * * * * *", async () => {
+  try {
+    // Encuentra todas las órdenes con remainingTime > 0
+    const orders = await prisma.order.findMany({
+      where: {
+        remainingTime: {
+          gt: 0,
+        },
+      },
+    });
+
+    // Actualiza solo las órdenes con remainingTime mayor a 0
+    for (const order of orders) {
+      if (order.remainingTime > 0) {
+        await prisma.order.update({
+          where: { id: order.id },
+          data: {
+            remainingTime: order.remainingTime - 10,
+          },
+        });
+        console.log(
+          `Order ${order.id} updated: remainingTime = ${
+            order.remainingTime - 10
+          }`
+        );
+      }
+    }
+
+    console.log(
+      "Job completed: Remaining times updated for orders with remainingTime > 0"
+    );
+  } catch (error) {
+    console.error("Error updating order remaining times:", error);
+  }
+});
 
 export const createCart = async (
   req: Request,
@@ -204,8 +241,10 @@ export const createOrder = async (
 ): Promise<void> => {
   const { sessionId, total, orderItems, roomNumber, clientName } = req.body;
 
-  console.log;
   try {
+    // Duración de 7 minutos en segundos
+    const durationInSeconds = 7 * 60;
+
     const newOrder = await prisma.order.create({
       data: {
         sessionId,
@@ -213,17 +252,55 @@ export const createOrder = async (
         roomNumber,
         clientName,
         status: "PENDING",
+        createdAt: new Date(), // Se asigna automáticamente por Prisma, pero lo dejamos explícito.
+        remainingTime: durationInSeconds, // Asignamos `remainingTime` con el valor calculado.
         orderItems: {
-          create: orderItems.map((item: { quantity: any; dishId: any }) => ({
-            quantity: item.quantity,
-            dishId: item.dishId,
-          })),
+          create: orderItems.map(
+            (item: { quantity: number; dishId: number }) => ({
+              quantity: item.quantity,
+              dishId: item.dishId,
+            })
+          ),
         },
       },
     });
+
     res.status(201).json(newOrder);
   } catch (error: any) {
-    res.status(500).json({ message: `Error creating cart: ${error.message}` });
+    res.status(500).json({ message: `Error creating order: ${error.message}` });
+  }
+};
+
+export const updateOrderRemainingTime = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { orderId } = req.params;
+  try {
+    const order = await prisma.order.findFirst({
+      where: {
+        id: Number(orderId),
+      },
+    });
+
+    console.log("time " + order?.remainingTime);
+
+    if (order) {
+      await prisma.order.update({
+        where: {
+          id: order.id,
+        },
+        data: {
+          remainingTime: order.remainingTime - 1,
+        },
+      });
+    }
+
+    res.json({ message: "Order remaining times updated successfully." });
+  } catch (error: any) {
+    res.status(500).json({
+      message: `Error updating order remaining times: ${error.message}`,
+    });
   }
 };
 
@@ -246,7 +323,7 @@ export const getOrdersByStatusSortedByRoomNumber = async (
         },
       },
       orderBy: {
-        roomNumber: "asc",
+        createdAt: "asc",
       },
     });
     res.json(ordersByStatus);
@@ -298,6 +375,7 @@ export const updateOrderStatus = async (
       },
       data: {
         status,
+        remainingTime: status === "COOKING" ? 900 : 0,
       },
     });
 

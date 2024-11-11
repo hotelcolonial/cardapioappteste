@@ -1,3 +1,4 @@
+import { TimeConfiguration } from "./../node_modules/.prisma/client/index.d";
 import { PrismaClient } from "@prisma/client";
 import fs from "fs";
 import path from "path";
@@ -31,6 +32,7 @@ async function main() {
     "cartItem.json",
     "order.json",
     "orderItem.json",
+    "timeConfiguration.json",
   ];
 
   const deletedOrderedFileNames = [
@@ -41,6 +43,7 @@ async function main() {
     "dish.json",
     "category.json",
     "menuType.json",
+    "timeConfiguration.json",
   ];
 
   await deleteAllData(deletedOrderedFileNames);

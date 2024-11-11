@@ -5,7 +5,12 @@ import { IoFastFoodOutline } from "react-icons/io5";
 import Modal from "@/components/ui/Modal";
 import { useState } from "react";
 import InputField from "@/components/ui/InputField";
-import { Order, OrderItem, useUpdateOrderStatusMutation } from "@/state/api";
+import {
+  Order,
+  OrderItem,
+  useUpdateOrderStatusMutation,
+  useUpdateOrderRemainingTimeMutation,
+} from "@/state/api";
 import Swal from "sweetalert2";
 
 const fetcher = (url: string | URL | Request) =>
@@ -21,23 +26,19 @@ const NewOrdersPage = () => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [status, setStatus] = useState<string>("");
   const [updateOrderStatus] = useUpdateOrderStatusMutation();
+  const [updateOrderRemainingTime] = useUpdateOrderRemainingTimeMutation();
 
   const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const { data: orders, error } = useSWR(
     `${apiUrl}/order/getorderbystatusroomid?status=PENDING`,
     fetcher,
-    { refreshInterval: 5000 }
+    { refreshInterval: 5000 } // Refrescar cada 5 segundos
   );
-
-  console.log(orders);
-
-  if (error) return <div>Erro ao carregar pedidos</div>;
-  if (!orders) return <div>Carregando...</div>;
 
   const openModal = (order: Order) => {
     setSelectedOrder(order);
-    setStatus(order.status); // Guardamos o estado atual do pedido
+    setStatus(order.status);
     setIsModalOpen(true);
   };
 
@@ -51,8 +52,7 @@ const NewOrdersPage = () => {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
-    setStatus(e.target.value); // Atualizamos o estado
-    console.log();
+    setStatus(e.target.value);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,23 +72,41 @@ const NewOrdersPage = () => {
     }
   };
 
+  if (error) return <div>Erro ao carregar pedidos</div>;
+  if (!orders) return <div>Carregando...</div>;
+
   return (
     <div className="font-raleway py-10 lg:py-0">
       <h1 className="text-2xl font-black text-primary-green">Pedidos novos</h1>
-      <div className="flex flex-wrap gap-8 py-3">
+      <div className="flex flex-wrap gap-8 py-3 gap-y-24">
         {Array.isArray(orders) && orders.length > 0 ? (
-          orders.map((order) => (
-            <div
-              key={order.id}
-              className="flex items-center justify-center space-x-2 relative cursor-pointer hover:bg-gray-100 bg-gray-300 rounded-full h-[7rem] w-[7rem] border border-gray-300"
-              onClick={() => openModal(order)} // Passamos o pedido ao abrir o modal
-            >
-              <IoFastFoodOutline className="text-[5rem] text-primary-green" />
-              <span className="text-lg font-quicksand font-bold absolute -bottom-6">
-                {order.roomNumber}
-              </span>
-            </div>
-          ))
+          orders.map((order) => {
+            const remainingTime = order.remainingTime;
+            const minutes = Math.floor(remainingTime / 60);
+            const seconds = remainingTime % 60;
+
+            return (
+              <div
+                key={order.id}
+                className="relative flex items-center justify-center space-x-2 cursor-pointer hover:bg-gray-100 bg-gray-300 rounded-full h-[7rem] w-[7rem] border border-gray-300"
+                onClick={() => openModal(order)}
+              >
+                <IoFastFoodOutline className="text-[5rem] text-primary-green" />
+                <span className="text-lg font-quicksand font-bold absolute -bottom-6">
+                  {order.roomNumber}
+                </span>
+                <div
+                  className={`absolute -bottom-[3rem] text-center font-black text-xl w-full py-1 ${
+                    remainingTime <= 0 ? "text-red-500" : "text-blue-500"
+                  }`}
+                >
+                  {remainingTime > 0
+                    ? `${minutes}:${seconds.toString().padStart(2, "0")}`
+                    : "0:00"}
+                </div>
+              </div>
+            );
+          })
         ) : (
           <p className="text-gray-500">Não há pedidos novos.</p>
         )}
@@ -128,21 +146,33 @@ const NewOrdersPage = () => {
               ))}
             </ul>
 
-            <InputField
-              label="Novo Estado"
-              name="status"
-              type="select"
-              value={status}
-              onChange={handleChange}
-              required
-              options={[
-                { value: "PENDING", label: "Pendente" },
-                { value: "COOKING", label: "Cozinhando" },
-                { value: "READY", label: "Pronto" },
-                { value: "DELIVERED", label: "Entregue" },
-                { value: "CANCEL", label: "Cancelado" },
-              ]}
-            />
+            <h3 className="mt-4 text-md font-semibold">Novo Estado:</h3>
+            <div className="flex gap-2">
+              {[
+                { value: "PENDING", label: "Pendente", color: "bg-yellow-500" },
+                {
+                  value: "COOKING",
+                  label: "Cozinhando",
+                  color: "bg-orange-500",
+                },
+                { value: "READY", label: "Pronto", color: "bg-green-500" },
+                { value: "DELIVERED", label: "Entregue", color: "bg-blue-500" },
+                { value: "CANCEL", label: "Cancelado", color: "bg-red-500" },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`py-2 px-4 text-white rounded ${option.color} ${
+                    status === option.value
+                      ? "opacity-70 ring-2 ring-offset-1 ring-gray-400"
+                      : ""
+                  }`}
+                  onClick={() => setStatus(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
 
             <div className="modal-action">
               <button

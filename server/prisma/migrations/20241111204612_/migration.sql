@@ -56,6 +56,7 @@ CREATE TABLE "Order" (
     "roomNumber" INTEGER NOT NULL,
     "total" DOUBLE PRECISION NOT NULL,
     "status" "OrderStatus" NOT NULL DEFAULT 'PENDING',
+    "remainingTime" INTEGER NOT NULL DEFAULT 0,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
@@ -69,6 +70,15 @@ CREATE TABLE "OrderItem" (
     "orderId" INTEGER NOT NULL,
 
     CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TimeConfiguration" (
+    "id" SERIAL NOT NULL,
+    "waitTime" INTEGER NOT NULL,
+    "messageActivated" BOOLEAN NOT NULL,
+
+    CONSTRAINT "TimeConfiguration_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable

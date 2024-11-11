@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useGetCartBySessionIdQuery } from "@/state/api";
 import LanguageSelectorMenu from "@/components/menu/LanguageSelectorMenu";
 import { useAppSelector } from "@/app/redux";
-import { FaPlus, FaMinus } from "react-icons/fa6";
+import { FaPlus, FaMinus, FaClock } from "react-icons/fa6";
 import Modal from "@/components/ui/Modal";
 import {
   useUpdateCartItemQuantityMutation,
@@ -14,6 +14,7 @@ import {
 } from "@/state/api";
 import InputField from "@/components/ui/InputField";
 import Swal from "sweetalert2";
+import { useGetWaitTimeQuery } from "@/state/api";
 
 import {
   buttonText,
@@ -34,12 +35,15 @@ const CartPage = () => {
   const [roomNumber, setRoomNumber] = useState<string>("");
   const [isError, setIsError] = useState<boolean>(false);
   const [totalAmount, setTotalAmount] = useState(0);
+  const { data: timeInfo, refetch } = useGetWaitTimeQuery();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedUserId = localStorage.getItem("sessionId");
       setSessionId(storedUserId ?? "");
     }
+
+    refetch();
   }, []);
 
   const { data: cart } = useGetCartBySessionIdQuery({ sessionId });
@@ -146,6 +150,8 @@ const CartPage = () => {
     }
   };
 
+  console.log(timeInfo);
+
   return (
     <div className="padding-container flex flex-col justify-center items-center font-quicksand lg:w-3/4 w-full mx-auto">
       <h2 className="text-2xl font-quicksand font-bold flex text-primary-green">
@@ -158,6 +164,15 @@ const CartPage = () => {
           </h3>
           <LanguageSelectorMenu />
         </div>
+        {timeInfo?.messageActivated && (
+          <div className="flex items-center bg-yellow-100 text-yellow-800 p-4 rounded-md shadow-md">
+            <FaClock className="mr-2 text-xl" />
+            <span className="font-semibold">
+              Tempo de espera estimado:{" "}
+              <span className="font-bold">{timeInfo.waitTime}</span> minutos
+            </span>
+          </div>
+        )}
         {cart?.cartItems && cart.cartItems.length > 0 ? (
           <div className="w-full mt-4 space-y-4">
             {cart.cartItems.map((item) => (

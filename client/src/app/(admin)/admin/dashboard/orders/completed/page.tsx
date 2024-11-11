@@ -130,21 +130,33 @@ const CompletedOrdersPage = () => {
               ))}
             </ul>
 
-            <InputField
-              label="Novo Estado"
-              name="status"
-              type="select"
-              value={status}
-              onChange={handleChange}
-              required
-              options={[
-                { value: "PENDING", label: "Pendente" },
-                { value: "COOKING", label: "Cozinhando" },
-                { value: "READY", label: "Pronto" },
-                { value: "DELIVERED", label: "Entregue" },
-                { value: "CANCEL", label: "Cancelado" },
-              ]}
-            />
+            <h3 className="mt-4 text-md font-semibold">Novo Estado:</h3>
+            <div className="flex gap-2">
+              {[
+                { value: "PENDING", label: "Pendente", color: "bg-yellow-500" },
+                {
+                  value: "COOKING",
+                  label: "Cozinhando",
+                  color: "bg-orange-500",
+                },
+                { value: "READY", label: "Pronto", color: "bg-green-500" },
+                { value: "DELIVERED", label: "Entregue", color: "bg-blue-500" },
+                { value: "CANCEL", label: "Cancelado", color: "bg-red-500" },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`py-2 px-4 text-white rounded ${option.color} ${
+                    status === option.value
+                      ? "opacity-70 ring-2 ring-offset-1 ring-gray-400"
+                      : ""
+                  }`}
+                  onClick={() => setStatus(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
 
             <div className="modal-action">
               <button

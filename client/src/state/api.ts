@@ -62,6 +62,12 @@ export interface Order {
   roomNumber: number;
   status: string;
   orderItems: OrderItem[];
+  remainingTime: number;
+}
+
+export interface TimeConfiguration {
+  waitTime: number;
+  messageActivated: boolean;
 }
 
 export const api = createApi({
@@ -217,6 +223,29 @@ export const api = createApi({
       }),
       invalidatesTags: ["Order"],
     }),
+    updateOrderRemainingTime: build.mutation<Order, { orderId: number }>({
+      query: ({ orderId }) => ({
+        url: `order/updateorderremainingtime/${orderId}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Order"],
+    }),
+    updateWaitTime: build.mutation<
+      TimeConfiguration,
+      Partial<TimeConfiguration>
+    >({
+      query: (timeConfiguration) => ({
+        url: `order/updatewaittime`,
+        method: "PATCH",
+        body: timeConfiguration,
+      }),
+    }),
+    getWaitTime: build.query<TimeConfiguration, void>({
+      query: () => ({
+        url: `order/getwaittime/`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -240,4 +269,7 @@ export const {
   useGetOrderBySessionIdQuery,
   useGetOrderByStatusQuery,
   useUpdateOrderStatusMutation,
+  useUpdateWaitTimeMutation,
+  useGetWaitTimeQuery,
+  useUpdateOrderRemainingTimeMutation,
 } = api;

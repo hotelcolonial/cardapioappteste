@@ -11,8 +11,13 @@ import {
   getOrdersBySessionId,
   getOrdersByStatusSortedByRoomNumber,
   updateCartItemQuantity,
+  updateOrderRemainingTime,
   updateOrderStatus,
 } from "../controllers/orderController";
+import {
+  getWaitTime,
+  updateWaitTime,
+} from "../controllers/reservationController";
 
 const router = Router();
 
@@ -27,6 +32,9 @@ router.patch("/updatecartitemquantity/:cartItemId", updateCartItemQuantity);
 router.post("/createorder/", createOrder);
 router.get("/getorderbystatusroomid/", getOrdersByStatusSortedByRoomNumber);
 router.patch("/updateorderstatus/:orderId", updateOrderStatus);
+router.patch("/updateorderremainingtime/:orderId", updateOrderRemainingTime);
 router.get("/getorderbysessionid/:sessionId", getOrdersBySessionId);
+router.patch("/updatewaittime/", updateWaitTime);
+router.get("/getwaittime/", getWaitTime);
 
 export default router;

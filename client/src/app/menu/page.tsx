@@ -76,6 +76,15 @@ export default function MenuHome() {
   });
 
   useEffect(() => {
+    // Si isCartCreated es true pero no hay un carrito, crear uno nuevo
+    if (isCartCreated && !cart) {
+      createCart({ sessionId });
+      localStorage.setItem("isCartCreated", "true");
+
+      localStorage.setItem("addedItems", JSON.stringify({}));
+    }
+
+    // Si no hay carrito y no se ha creado uno, creamos un nuevo sessionId y carrito
     if (!cart && sessionId && !isCartCreated) {
       createCart({ sessionId });
       setIsCartCreated(true);
@@ -122,7 +131,6 @@ export default function MenuHome() {
   const OPTIONS: EmblaOptionsType = { align: "end" };
 
   console.log(SLIDES[activeIndex]);
-
   return (
     <>
       <div className="flex justify-end mb-4 gap-4 lg:w-3/4 font-raleway">

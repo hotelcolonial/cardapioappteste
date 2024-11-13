@@ -78,6 +78,7 @@ export default function MenuHome() {
   useEffect(() => {
     // Si isCartCreated es true pero no hay un carrito, crear uno nuevo
     if (isCartCreated && !cart) {
+      console.log("FLAG");
       createCart({ sessionId });
       localStorage.setItem("isCartCreated", "true");
 
@@ -86,6 +87,7 @@ export default function MenuHome() {
 
     // Si no hay carrito y no se ha creado uno, creamos un nuevo sessionId y carrito
     if (!cart && sessionId && !isCartCreated) {
+      console.log("FLAG2");
       createCart({ sessionId });
       setIsCartCreated(true);
       localStorage.setItem("isCartCreated", "true");

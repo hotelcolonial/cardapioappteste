@@ -70,6 +70,10 @@ export interface TimeConfiguration {
   messageActivated: boolean;
 }
 
+export interface Print {
+  printData: string;
+}
+
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL }),
   reducerPath: "api",
@@ -246,6 +250,13 @@ export const api = createApi({
         method: "GET",
       }),
     }),
+    sendPrint: build.mutation<Print, Partial<Print>>({
+      query: (print) => ({
+        url: "order/createorder",
+        method: "POST",
+        body: print,
+      }),
+    }),
   }),
 });
 
@@ -272,4 +283,5 @@ export const {
   useUpdateWaitTimeMutation,
   useGetWaitTimeQuery,
   useUpdateOrderRemainingTimeMutation,
+  useSendPrintMutation,
 } = api;

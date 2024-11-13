@@ -23,24 +23,32 @@ export const printInfo = async (req: Request, res: Response): Promise<void> => {
     const printResult = await sendToPrintNode(pdfBase64);
 
     res.status(200).json(printResult);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error al enviar a PrintNode:", error);
     res.status(500).json({ error: "Error al imprimir" });
   }
 };
 
 const convertHtmlToPdfBase64 = async (html: string): Promise<string> => {
-  const browser = await puppeteer.launch();
+  // Lanzar el navegador en modo headless, asegurándote de que Puppeteer use una instalación de Chromium válida
+  const browser = await puppeteer.launch({
+    headless: true, // Asegura que Puppeteer se ejecute en modo sin cabeza
+    args: [
+      "--no-sandbox", // Desactiva el sandbox (recomendado en servidores sin interfaz gráfica)
+      "--disable-setuid-sandbox", // Recomendado para entornos de servidores
+    ],
+  });
+
   const page = await browser.newPage();
   await page.setContent(html);
 
-  // The pdf() method may return a Uint8Array, so convert it to a Buffer
+  // Generar el PDF en formato A4
   const pdfUint8Array: Uint8Array = await page.pdf({ format: "A4" });
   const pdfBuffer = Buffer.from(pdfUint8Array);
 
   await browser.close();
 
-  // Convert the Buffer to base64
+  // Convertir el Buffer a base64
   return pdfBuffer.toString("base64");
 };
 

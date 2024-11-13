@@ -31,13 +31,9 @@ export const printInfo = async (req: Request, res: Response): Promise<void> => {
 
 const convertHtmlToPdfBase64 = async (html: string): Promise<string> => {
   const browser = await puppeteer.launch({
-    headless: true, // Asegura que Puppeteer se ejecute en modo sin cabeza
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage", // Usa /tmp para evitar problemas de memoria compartida
-      "--disable-gpu", // Desactiva la GPU (relevante en algunos servidores)
-    ],
+    executablePath: "/usr/bin/google-chrome", // Ruta encontrada
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
   const page = await browser.newPage();

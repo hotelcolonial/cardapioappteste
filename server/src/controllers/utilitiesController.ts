@@ -45,7 +45,7 @@ const convertHtmlToPdfBase64 = async (html: string): Promise<string> => {
 };
 
 const sendToPrintNode = async (pdfBase64: string) => {
-  const printNodeApiKey = "mik7pdzhX0K65JBvnhJLwPNTmm0jp5cq3JOyf0jTYNg"; // Reemplaza con tu API Key de PrintNode
+  const printNodeApiKey = process.env.PRINT_KEY; // Reemplaza con tu API Key de PrintNode
   const printNodeUrl = "https://api.printnode.com/printjobs";
   const base64ApiKey = Buffer.from(`${printNodeApiKey}:`).toString("base64");
 
@@ -56,7 +56,7 @@ const sendToPrintNode = async (pdfBase64: string) => {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      printerId: "73844734", // Reemplaza con el ID de tu impresora
+      printerId: process.env.PRINTER_ID, // Reemplaza con el ID de tu impresora
       title: "Trabajo de impresión PDF",
       contentType: "pdf_base64",
       content: pdfBase64,
